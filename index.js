@@ -29,11 +29,16 @@ async function run() {
     await client.db("admin").command({ ping: 1 });
     const database = client.db("fatikSheba");
     const usersCollection = database.collection("users");
+    const problemPostsCollection = database.collection("problems");
+    const problemCommentsCollection = database.collection("problemComments");
+    const askCollection = database.collection("ask");
+    const blogCollection = database.collection("blogs");
+    const blogCommentsCollection = database.collection("blogComments");
 
     app.get("/users", async (req, res) => {
       const cursor = usersCollection.find({});
       const result = await cursor.toArray();
-      res.send(result);
+      res.send(result.reverse());
     });
 
     app.get("/users/:email", async (req, res) => {
@@ -43,9 +48,97 @@ async function run() {
       res.json(user);
     });
 
+    app.get("/problems", async (req, res) => {
+      const cursor = problemPostsCollection.find({});
+      const result = await cursor.toArray();
+      res.send(result.reverse());
+    });
+
+    app.get("/blogs", async (req, res) => {
+      const cursor = blogCollection.find({});
+      const result = await cursor.toArray();
+      res.send(result.reverse());
+    });
+
+    app.get("/problem-comments/:to", async (req, res) => {
+      const to = req.params.to;
+      const query = { to: to };
+      const cursor = problemCommentsCollection.find(query);
+      const result = await cursor.toArray();
+      res.json(result);
+    });
+
+    app.get("/blog-comments/:to", async (req, res) => {
+      const to = req.params.to;
+      const query = { to: to };
+      const cursor = blogCommentsCollection.find(query);
+      const result = await cursor.toArray();
+      res.json(result);
+    });
+
+    app.get("/blogs/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const blog = await blogCollection.findOne(query);
+      res.json(blog);
+    });
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
+      res.json(result);
+    });
+
+    app.post("/problem-share", async (req, res) => {
+      const email = req.body.email;
+      const date = req.body.date;
+      const description = req.body.text;
+      const pic = req.files.photo;
+      const picData = pic.data;
+      const encodedPic = picData.toString("base64");
+      const imageBuffer = Buffer.from(encodedPic, "base64");
+      const allData = { image: imageBuffer, email, date, description };
+      const result = await problemPostsCollection.insertOne(allData);
+      res.json(result);
+    });
+
+    app.post("/blog", async (req, res) => {
+      const email = req.body.email;
+      const date = req.body.date;
+      const title = req.body.title;
+      const category = req.body.category;
+      const description = req.body.description;
+      const pic = req.files.coverPhoto;
+      const picData = pic.data;
+      const encodedPic = picData.toString("base64");
+      const imageBuffer = Buffer.from(encodedPic, "base64");
+      const allData = {
+        coverPhoto: imageBuffer,
+        email,
+        date,
+        title,
+        category,
+        description,
+      };
+      const result = await blogCollection.insertOne(allData);
+      res.json(result);
+    });
+
+    app.post("/problem-comment", async (req, res) => {
+      const comment = req.body;
+      const result = await problemCommentsCollection.insertOne(comment);
+      res.json(result);
+    });
+
+    app.post("/blog-comment", async (req, res) => {
+      const comment = req.body;
+      const result = await blogCommentsCollection.insertOne(comment);
+      res.json(result);
+    });
+
+    app.post("/ask", async (req, res) => {
+      const ask = req.body;
+      const result = await askCollection.insertOne(ask);
       res.json(result);
     });
 
