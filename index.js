@@ -31,7 +31,8 @@ async function run() {
     const usersCollection = database.collection("users");
     const problemPostsCollection = database.collection("problems");
     const problemCommentsCollection = database.collection("problemComments");
-    const askCollection = database.collection("ask");
+    const questionsCollection = database.collection("questions");
+    const answersCollection = database.collection("answers");
     const blogCollection = database.collection("blogs");
     const blogCommentsCollection = database.collection("blogComments");
 
@@ -60,6 +61,12 @@ async function run() {
       res.send(result.reverse());
     });
 
+    app.get("/questions", async (req, res) => {
+      const cursor = questionsCollection.find({});
+      const result = await cursor.toArray();
+      res.send(result.reverse());
+    });
+
     app.get("/problem-comments/:to", async (req, res) => {
       const to = req.params.to;
       const query = { to: to };
@@ -76,11 +83,26 @@ async function run() {
       res.json(result);
     });
 
+    app.get("/answers/:to", async (req, res) => {
+      const to = req.params.to;
+      const query = { to: to };
+      const cursor = answersCollection.find(query);
+      const result = await cursor.toArray();
+      res.json(result);
+    });
+
     app.get("/blogs/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const blog = await blogCollection.findOne(query);
       res.json(blog);
+    });
+
+    app.get("/questions/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const question = await questionsCollection.findOne(query);
+      res.json(question);
     });
 
     app.post("/users", async (req, res) => {
@@ -136,9 +158,15 @@ async function run() {
       res.json(result);
     });
 
-    app.post("/ask", async (req, res) => {
-      const ask = req.body;
-      const result = await askCollection.insertOne(ask);
+    app.post("/answer", async (req, res) => {
+      const answer = req.body;
+      const result = await answersCollection.insertOne(answer);
+      res.json(result);
+    });
+
+    app.post("/question", async (req, res) => {
+      const question = req.body;
+      const result = await questionsCollection.insertOne(question);
       res.json(result);
     });
 
