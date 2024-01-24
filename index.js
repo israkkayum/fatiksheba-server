@@ -98,11 +98,41 @@ async function run() {
       res.json(blog);
     });
 
-    app.get("/questions/:id", async (req, res) => {
+    app.get("/question/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const question = await questionsCollection.findOne(query);
       res.json(question);
+    });
+
+    app.get("/questions/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const cursor = questionsCollection.find(query);
+      const result = await cursor.toArray();
+      res.json(result);
+    });
+
+    app.get("/problems/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const cursor = problemPostsCollection.find(query);
+      const result = await cursor.toArray();
+      res.json(result);
+    });
+
+    app.get("/problem/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const problem = await problemPostsCollection.findOne(query);
+      res.json(problem);
+    });
+
+    app.get("/profile/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const profile = await usersCollection.findOne(query);
+      res.json(profile);
     });
 
     app.post("/users", async (req, res) => {
