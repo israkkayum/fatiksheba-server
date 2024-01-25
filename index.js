@@ -49,6 +49,31 @@ async function run() {
       res.json(user);
     });
 
+    app.get("/users/isAdmin/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let isAdmin = false;
+      if (user?.role === "admin") {
+        isAdmin = true;
+      }
+      res.json({ admin: isAdmin });
+    });
+
+    app.get("/patients", async (req, res) => {
+      const query = { status: "patient" };
+      const cursor = usersCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result.reverse());
+    });
+
+    app.get("/physicians", async (req, res) => {
+      const query = { status: "physician" };
+      const cursor = usersCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result.reverse());
+    });
+
     app.get("/problems", async (req, res) => {
       const cursor = problemPostsCollection.find({});
       const result = await cursor.toArray();
@@ -91,11 +116,19 @@ async function run() {
       res.json(result);
     });
 
-    app.get("/blogs/:id", async (req, res) => {
+    app.get("/blog/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const blog = await blogCollection.findOne(query);
       res.json(blog);
+    });
+
+    app.get("/blogs/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const cursor = blogCollection.find(query);
+      const result = await cursor.toArray();
+      res.json(result);
     });
 
     app.get("/question/:id", async (req, res) => {
@@ -222,6 +255,35 @@ async function run() {
         updateDoc,
         options
       );
+      res.json(result);
+    });
+
+    app.put("/physician/approval/:id", async (req, res) => {
+      const id = req.params.id;
+      const approval = req.body.approval;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          approval,
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.json(result);
+    });
+
+    app.put("/users/admin/add", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const updateDoc = { $set: { role: "admin" } };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.json(result);
+    });
+
+    app.put("/users/admin/remove", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.id };
+      const updateDoc = { $set: { role: "null" } };
+      const result = await usersCollection.updateOne(filter, updateDoc);
       res.json(result);
     });
 
